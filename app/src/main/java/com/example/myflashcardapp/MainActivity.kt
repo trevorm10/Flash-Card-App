@@ -177,8 +177,8 @@ fun AnswerButton(answer: String, onClick: () -> Unit) {
 
 @Composable
 fun ScoreScreen(navController: NavController) {
-    var score by remember { mutableStateOf(0) }
-    var totalQuestions by remember { mutableStateOf(5) } // Total questions
+    var score by remember { mutableIntStateOf(0) }
+    var totalQuestions by remember { mutableIntStateOf(5) } // Total questions
 
     Box(
         modifier = Modifier
@@ -203,7 +203,7 @@ fun ScoreScreen(navController: NavController) {
                 color = Color.Black
             )
             Spacer(modifier = Modifier.height(20.dp))
-            ReviewButton(navController)
+            ReviewButton()
             Spacer(modifier = Modifier.height(20.dp))
             ExitButton()
         }
@@ -211,7 +211,7 @@ fun ScoreScreen(navController: NavController) {
 }
 
 @Composable
-fun ReviewButton(navController: NavController) {
+fun ReviewButton() {
     Text(
         text = "Review",
         fontSize = 18.sp,
