@@ -8,14 +8,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -36,13 +35,14 @@ class MainActivity : ComponentActivity() {
 fun FlashCardAppNavigation() {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = "welcome") {
-        composable("welcome") { FlashCardAppScreen(navController) }
-        composable("second") { SecondScreen() } // This is where you add the second screen
+        composable("welcome") { WelcomeScreen(navController) }
+        composable("question") { FlashcardQuestionScreen(navController) }
+        composable("score") { ScoreScreen(navController) }
     }
 }
 
 @Composable
-fun FlashCardAppScreen(navController: NavController) {
+fun WelcomeScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -54,15 +54,17 @@ fun FlashCardAppScreen(navController: NavController) {
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = buildAnnotatedString {
-                    append("Welcome to ")
-                    withStyle(style = androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append("Flash Card App")
-                    }
-                    append("!")
-                },
+                text = "Welcome to the Flash Card App!",
                 fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
                 color = Color(0xFF1976D2) // Dark blue text
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                text = "This app will help you learn through flashcards. Let's get started!",
+                fontSize = 16.sp,
+                color = Color.Black,
+                modifier = Modifier.padding(16.dp)
             )
             Spacer(modifier = Modifier.height(20.dp))
             StartButton(navController)
@@ -73,31 +75,157 @@ fun FlashCardAppScreen(navController: NavController) {
 @Composable
 fun StartButton(navController: NavController) {
     Text(
-        text = "Get Started",
+        text = "Start",
         fontSize = 18.sp,
         fontWeight = FontWeight.Bold,
         color = Color.White,
         modifier = Modifier
             .padding(16.dp)
             .background(Color(0xFF4CAF50)) // Green background
-            .clickable { navController.navigate("second") } // Navigate to second screen
+            .clickable { navController.navigate("question") } // Navigate to question screen
             .padding(16.dp) // Padding inside the button
     )
 }
 
-// This is the second screen composable
 @Composable
-fun SecondScreen() {
+fun FlashcardQuestionScreen(navController: NavController) {
+    val questions = listOf(
+        "Nelson Mandela was the president in 1994",
+        "The Earth is flat",
+        "Kangaroos are native to Australia",
+        "The capital of France is Paris",
+        "Water boils at 100 degrees Celsius"
+    )
+    val answers = listOf(true, false, true, true, true)
+    var currentQuestionIndex by remember { mutableStateOf(0) }
+    var score by remember { mutableStateOf(0) }
+    var feedback by remember { mutableStateOf("") }
+
+    if (currentQuestionIndex >= questions.size) {
+        navController.navigate("score") {
+            popUpTo("question") { inclusive = true }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFE3F2FD)), // Light blue background
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "Lets Get Started!",
-            fontSize = 24.sp,
-            color = Color(0xFF1976D2) // Dark blue text
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = questions[currentQuestionIndex],
+                fontSize = 24.sp,
+                color = Color(0xFF1976D2) // Dark blue text
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            Row {
+                AnswerButton("True") {
+                    if (answers[currentQuestionIndex]) {
+                        feedback = "Correct!"
+                        score++
+                    } else {
+                        feedback = "Incorrect"
+                    }
+                    currentQuestionIndex++
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                AnswerButton("False") {
+                    if (!answers[currentQuestionIndex]) {
+                        feedback = "Correct!"
+                        score++
+                    } else {
+                        feedback = "Incorrect"
+                    }
+                    currentQuestionIndex++
+                }
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(text = feedback, fontSize = 18.sp, color = Color.Black)
+        }
     }
+}
+
+@Composable
+fun AnswerButton(answer: String, onClick: () -> Unit) {
+    Text(
+        text = answer,
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color.White,
+        modifier = Modifier
+            .padding(16.dp)
+            .background(Color(0xFF4CAF50)) // Green background
+            .clickable { onClick() } // Handle answer selection
+            .padding(16.dp) // Padding inside the button
+    )
+}
+
+@Composable
+fun ScoreScreen(navController: NavController) {
+    var score by remember { mutableStateOf(0) }
+    var totalQuestions by remember { mutableStateOf(5) } // Total questions
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFE3F2FD)), // Light blue background
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Your Score: $score / $totalQuestions",
+                fontSize = 24.sp,
+                color = Color(0xFF1976D2) // Dark blue text
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            val feedbackMessage = if (score >= 3) "Great job!" else "Keep practicing!"
+            Text(
+                text = feedbackMessage,
+                fontSize = 18.sp,
+                color = Color.Black
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            ReviewButton(navController)
+            Spacer(modifier = Modifier.height(20.dp))
+            ExitButton()
+        }
+    }
+}
+
+@Composable
+fun ReviewButton(navController: NavController) {
+    Text(
+        text = "Review",
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color.White,
+        modifier = Modifier
+            .padding(16.dp)
+            .background(Color(0xFF4CAF50)) // Green background
+            .clickable { /* Logic to review flashcards */ }
+            .padding(16.dp) // Padding inside the button
+    )
+}
+
+@Composable
+fun ExitButton() {
+    Text(
+        text = "Exit",
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color.White,
+        modifier = Modifier
+            .padding(16.dp)
+            .background(Color.Red) // Red background for exit
+            .clickable { /* Logic to exit the app */ }
+            .padding(16.dp) // Padding inside the button
+    )
 }
