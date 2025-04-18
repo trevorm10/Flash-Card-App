@@ -95,12 +95,12 @@ fun FlashcardQuestionScreen(navController: NavController) {
         "Water boils at 100 degrees Celsius",
         "There are 364 days in a year"
     )
-    val answers = listOf(true, false, true, true, true,false)
+    val answers = listOf(true, false, true, true, true, false)
     var currentQuestionIndex by remember { mutableStateOf(0) }
     var score by remember { mutableStateOf(0) }
     var feedback by remember { mutableStateOf("") }
     var showFeedback by remember { mutableStateOf(false) }
-    var userAnswers = remember { mutableStateListOf<Boolean?>(null, null, null, null, null,null) }
+    var userAnswers = remember { mutableStateListOf<Boolean?>(null, null, null, null, null, null) }
 
     Box(
         modifier = Modifier
@@ -162,7 +162,7 @@ fun FlashcardQuestionScreen(navController: NavController) {
                     onClick = {
                         navController.currentBackStackEntry?.savedStateHandle?.set("score", score)
                         navController.navigate("score") {
-                            popUpTo("question") { inclusive = true }
+                            popUpTo("welcome") { inclusive = true }
                         }
                     },
                     text = "Finish"
@@ -245,7 +245,7 @@ fun ScoreScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(20.dp))
             ReviewButton(navController)
             Spacer(modifier = Modifier.height(20.dp))
-            ExitButton()
+            ExitButton(navController)
         }
     }
 }
@@ -268,7 +268,7 @@ fun ReviewButton(navController: NavController) {
 }
 
 @Composable
-fun ExitButton() {
+fun ExitButton(navController: NavController) {
     Text(
         text = "Exit",
         fontSize = 18.sp,
@@ -278,9 +278,7 @@ fun ExitButton() {
             .padding(16.dp)
             .background(Color.Red) // Red background for exit
             .clickable {
-                // Logic to exit the app
-                // Uncomment the line below to close the app
-                // finish()
+                navController.navigate("welcome") // Navigate back to the welcome screen
             }
             .padding(16.dp) // Padding inside the button
     )
@@ -288,6 +286,27 @@ fun ExitButton() {
 
 @Composable
 fun ReviewScreen(navController: NavController) {
+    // Implement the review screen here
+    // You can display the questions, the user's answers, and the correct answers
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFE3F2FD)), // Light blue background
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Review Screen",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1976D2) // Dark blue text
+            )
+            Spacer(modifier = Modifier.height(20.dp))
 
-
+        }
+    }
 }
+
