@@ -35,6 +35,7 @@ fun FlashCardAppNavigation() {
         composable("welcome") { WelcomeScreen(navController) }
         composable("question") { FlashcardQuestionScreen(navController) }
         composable("score") { ScoreScreen(navController) }
+        composable("review") { ReviewScreen(navController) }
     }
 }
 
@@ -43,7 +44,7 @@ fun WelcomeScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFE3F2FD)), // Light blue background
+            .background(Color(0xFFFF5722)), //red background
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -58,9 +59,9 @@ fun WelcomeScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = "This app will help you learn through flashcards. Let's get started!",
+                text = "This app will help you gain general knowledge by answering simple questions through a flashcard system. Let's get started!",
                 fontSize = 16.sp,
-                color = Color.Black,
+                color = Color.White,
                 modifier = Modifier.padding(16.dp)
             )
             Spacer(modifier = Modifier.height(20.dp))
@@ -78,7 +79,7 @@ fun StartButton(navController: NavController) {
         color = Color.White,
         modifier = Modifier
             .padding(16.dp)
-            .background(Color(0xFF4CAF50)) // Green background
+            .background(Color(0xFF3F51B5)) // blue background
             .clickable { navController.navigate("question") } // Navigate to question screen
             .padding(16.dp) // Padding inside the button
     )
@@ -91,20 +92,15 @@ fun FlashcardQuestionScreen(navController: NavController) {
         "The Earth is flat",
         "Kangaroos are native to Australia",
         "The capital of France is Paris",
-        "Water boils at 100 degrees Celsius"
+        "Water boils at 100 degrees Celsius",
+        "There are 364 days in a year"
     )
-    val answers = listOf(true, false, true, true, true)
+    val answers = listOf(true, false, true, true, true,false)
     var currentQuestionIndex by remember { mutableStateOf(0) }
     var score by remember { mutableStateOf(0) }
     var feedback by remember { mutableStateOf("") }
     var showFeedback by remember { mutableStateOf(false) }
-
-    if (currentQuestionIndex >= questions.size) {
-        navController.navigate("score") {
-            popUpTo("question") { inclusive = true }
-            launchSingleTop = true
-        }
-    }
+    var userAnswers = remember { mutableStateListOf<Boolean?>(null, null, null, null, null,null) }
 
     Box(
         modifier = Modifier
@@ -116,43 +112,60 @@ fun FlashcardQuestionScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = questions[currentQuestionIndex],
-                fontSize = 24.sp,
-                color = Color(0xFF1976D2) // Dark blue text
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Row {
-                AnswerButton("True") {
-                    if (answers[currentQuestionIndex]) {
-                        feedback = "Correct!"
-                        score++
-                    } else {
-                        feedback = "Incorrect"
+            if (currentQuestionIndex < questions.size) {
+                Text(
+                    text = questions[currentQuestionIndex],
+                    fontSize = 24.sp,
+                    color = Color(0xFF1976D2) // Dark blue text
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                Row {
+                    AnswerButton("True") {
+                        userAnswers[currentQuestionIndex] = true
+                        if (answers[currentQuestionIndex]) {
+                            feedback = "Correct!"
+                            score++
+                        } else {
+                            feedback = "Incorrect"
+                        }
+                        showFeedback = true
                     }
-                    showFeedback = true
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                AnswerButton("False") {
-                    if (!answers[currentQuestionIndex]) {
-                        feedback = "Correct!"
-                        score++
-                    } else {
-                        feedback = "Incorrect"
+                    Spacer(modifier = Modifier.width(16.dp))
+                    AnswerButton("False") {
+                        userAnswers[currentQuestionIndex] = false
+                        if (!answers[currentQuestionIndex]) {
+                            feedback = "Correct!"
+                            score++
+                        } else {
+                            feedback = "Incorrect"
+                        }
+                        showFeedback = true
                     }
-                    showFeedback = true
                 }
-            }
-            Spacer(modifier = Modifier.height(20.dp))
-            if (showFeedback) {
-                Text(text = feedback, fontSize = 18.sp, color = Color.Black)
+                Spacer(modifier = Modifier.height(20.dp))
+                if (showFeedback) {
+                    Text(text = feedback, fontSize = 18.sp, color = Color.Black)
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Button(
+                        onClick = {
+                            currentQuestionIndex++
+                            showFeedback = false
+                        },
+                        text = "Next Question"
+                    )
+                }
+            } else {
+                // Show Finish button after the last question
+                Text(text = "You've completed all questions!", fontSize = 24.sp, color = Color(0xFF1976D2))
                 Spacer(modifier = Modifier.height(20.dp))
                 Button(
                     onClick = {
-                        currentQuestionIndex++
-                        showFeedback = false
+                        navController.currentBackStackEntry?.savedStateHandle?.set("score", score)
+                        navController.navigate("score") {
+                            popUpTo("question") { inclusive = true }
+                        }
                     },
-                    text = "Next Question"
+                    text = "Finish"
                 )
             }
         }
@@ -192,7 +205,21 @@ fun Button(onClick: () -> Unit, text: String) {
 @Composable
 fun ScoreScreen(navController: NavController) {
     var score by remember { mutableStateOf(0) }
-    var totalQuestions by remember { mutableStateOf(5) } // Total questions
+    var totalQuestions by remember { mutableStateOf(6) } // Total questions
+    var feedbackMessage by remember { mutableStateOf("") }
+
+    // Retrieve the score from the previous screen
+    LaunchedEffect(Unit) {
+        score = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("score") ?: 0
+    }
+
+    feedbackMessage = when {
+        score == totalQuestions -> "Perfect score! Excellent work!"
+        score >= 4 -> "Great job! You're really knowledgeable!"
+        score >= 3 -> "Good effort! Keep learning!"
+        score >= 2 -> "Not bad, but you can improve!"
+        else -> "Keep practicing to get better!"
+    }
 
     Box(
         modifier = Modifier
@@ -210,14 +237,13 @@ fun ScoreScreen(navController: NavController) {
                 color = Color(0xFF1976D2) // Dark blue text
             )
             Spacer(modifier = Modifier.height(20.dp))
-            val feedbackMessage = if (score >= 3) "Great job!" else "Keep practicing!"
             Text(
                 text = feedbackMessage,
                 fontSize = 18.sp,
                 color = Color.Black
             )
             Spacer(modifier = Modifier.height(20.dp))
-            ReviewButton()
+            ReviewButton(navController)
             Spacer(modifier = Modifier.height(20.dp))
             ExitButton()
         }
@@ -225,7 +251,7 @@ fun ScoreScreen(navController: NavController) {
 }
 
 @Composable
-fun ReviewButton() {
+fun ReviewButton(navController: NavController) {
     Text(
         text = "Review",
         fontSize = 18.sp,
@@ -234,7 +260,9 @@ fun ReviewButton() {
         modifier = Modifier
             .padding(16.dp)
             .background(Color(0xFF4CAF50)) // Green background
-            .clickable { /* Logic to review flashcards */ }
+            .clickable {
+                navController.navigate("review") // Navigate to review screen
+            }
             .padding(16.dp) // Padding inside the button
     )
 }
@@ -249,7 +277,17 @@ fun ExitButton() {
         modifier = Modifier
             .padding(16.dp)
             .background(Color.Red) // Red background for exit
-            .clickable { /* Logic to exit the app */ }
+            .clickable {
+                // Logic to exit the app
+                // Uncomment the line below to close the app
+                // finish()
+            }
             .padding(16.dp) // Padding inside the button
     )
+}
+
+@Composable
+fun ReviewScreen(navController: NavController) {
+
+
 }
