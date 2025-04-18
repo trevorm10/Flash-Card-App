@@ -5,22 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -107,13 +94,15 @@ fun FlashcardQuestionScreen(navController: NavController) {
         "Water boils at 100 degrees Celsius"
     )
     val answers = listOf(true, false, true, true, true)
-    var currentQuestionIndex by remember { mutableIntStateOf(0) }
-    var score by remember { mutableIntStateOf(0) }
+    var currentQuestionIndex by remember { mutableStateOf(0) }
+    var score by remember { mutableStateOf(0) }
     var feedback by remember { mutableStateOf("") }
+    var showFeedback by remember { mutableStateOf(false) }
 
     if (currentQuestionIndex >= questions.size) {
         navController.navigate("score") {
             popUpTo("question") { inclusive = true }
+            launchSingleTop = true
         }
     }
 
@@ -141,7 +130,7 @@ fun FlashcardQuestionScreen(navController: NavController) {
                     } else {
                         feedback = "Incorrect"
                     }
-                    currentQuestionIndex++
+                    showFeedback = true
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 AnswerButton("False") {
@@ -151,11 +140,21 @@ fun FlashcardQuestionScreen(navController: NavController) {
                     } else {
                         feedback = "Incorrect"
                     }
-                    currentQuestionIndex++
+                    showFeedback = true
                 }
             }
             Spacer(modifier = Modifier.height(20.dp))
-            Text(text = feedback, fontSize = 18.sp, color = Color.Black)
+            if (showFeedback) {
+                Text(text = feedback, fontSize = 18.sp, color = Color.Black)
+                Spacer(modifier = Modifier.height(20.dp))
+                Button(
+                    onClick = {
+                        currentQuestionIndex++
+                        showFeedback = false
+                    },
+                    text = "Next Question"
+                )
+            }
         }
     }
 }
@@ -176,9 +175,24 @@ fun AnswerButton(answer: String, onClick: () -> Unit) {
 }
 
 @Composable
+fun Button(onClick: () -> Unit, text: String) {
+    Text(
+        text = text,
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color.White,
+        modifier = Modifier
+            .padding(16.dp)
+            .background(Color(0xFF4CAF50)) // Green background
+            .clickable { onClick() } // Handle button click
+            .padding(16.dp) // Padding inside the button
+    )
+}
+
+@Composable
 fun ScoreScreen(navController: NavController) {
-    var score by remember { mutableIntStateOf(0) }
-    var totalQuestions by remember { mutableIntStateOf(5) } // Total questions
+    var score by remember { mutableStateOf(0) }
+    var totalQuestions by remember { mutableStateOf(5) } // Total questions
 
     Box(
         modifier = Modifier
