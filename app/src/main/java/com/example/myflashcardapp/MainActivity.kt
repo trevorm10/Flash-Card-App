@@ -286,8 +286,7 @@ fun ExitButton(navController: NavController) {
 
 @Composable
 fun ReviewScreen(navController: NavController) {
-    // Implement the review screen here
-    // You can display the questions, the user's answers, and the correct answers
+
     Box(
         modifier = Modifier
             .fillMaxSize()
