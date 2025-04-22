@@ -305,11 +305,11 @@ fun ReviewButton(navController: NavController, answers: String) {
 fun ReviewScreen(navController: NavController, answers: String) {
     val questions = listOf(
         "Nelson Mandela was the president in 1994",
-        "The Earth is flat",
-        "Kangaroos are native to Australia",
-        "The capital of France is Paris",
-        "Water boils at 100 degrees Celsius",
-        "There are 364 days in a year"
+        "The Great Wall of China was built to protect against invasions from the Mongols",
+        "The Titanic sank in 1915",
+        "The United States declared independence from Great Britain in 1776",
+        "The Roman Empire was known for its extensive network of roads",
+        "Napoleon Bonaparte was born in Spain"
     )
     val correctAnswers = listOf(true, false, true, true, true, false)
     val userAnswers = answers.split(",").map {
